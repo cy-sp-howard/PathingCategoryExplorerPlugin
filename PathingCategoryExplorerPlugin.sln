@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35122.118
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2A3DCCC3-3F4C-414D-9F90-53BFABEC6844}") = "PathingCategoryExplorerPlugin", "PathingCategoryExplorerPlugin.csproj", "{A35FF1AE-6BC4-47F8-8929-15626253BC06}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A35FF1AE-6BC4-47F8-8929-15626253BC06}.Debug|x64.ActiveCfg = Debug|x64
+		{A35FF1AE-6BC4-47F8-8929-15626253BC06}.Debug|x64.Build.0 = Debug|x64
+		{A35FF1AE-6BC4-47F8-8929-15626253BC06}.Release|x64.ActiveCfg = Release|x64
+		{A35FF1AE-6BC4-47F8-8929-15626253BC06}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A76CBCEC-8DC6-4C5A-8E82-DB8A8D505FF3}
+	EndGlobalSection
+EndGlobal
