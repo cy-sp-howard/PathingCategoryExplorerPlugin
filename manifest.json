@@ -4,7 +4,7 @@
   "namespace": "Yeh.PathingCategoryExplorerPlugin",
   "package": "PathingCategoryExplorerPlugin.dll",
   "manifest_version": 1,
-  "description": "Extend the context menu in the Path Category Explorer.",
+  "description": "Extend the context menu in the Pathing Category Explorer.",
   "dependencies": {
     "bh.blishhud": ">=1.3.0",
     "bh.community.pathing": ">=1.11.3"

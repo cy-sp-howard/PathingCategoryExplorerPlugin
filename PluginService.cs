@@ -164,16 +164,16 @@ namespace BhModule.PathingCategoryExplorerPlugin
             var pathingAssembly = Assembly.GetAssembly(_pathingModuleManager.ModuleInstance.GetType());
             var pathingNodeType = pathingAssembly.GetType("BhModule.Community.Pathing.UI.Controls.TreeNodes.TreeNodeBase");
             var DisposeControlMethodInfo = pathingNodeType.GetMethod("DisposeControl", BindingFlags.NonPublic | BindingFlags.Instance);
-            var hook = new Hook(DisposeControlMethodInfo, DisposeTreeNodeBase, Settings.FixNullTreeView.Value);
+            var hook = new Hook(DisposeControlMethodInfo, DisposeTreeNodeBase, Settings.FixNodeExpansionBug.Value);
             void applyHook(object sender, ValueChangedEventArgs<bool> e)
             {
                 if (e.NewValue) hook.Apply();
                 else hook.Undo();
             }
-            Settings.FixNullTreeView.SettingChanged += applyHook;
+            Settings.FixNodeExpansionBug.SettingChanged += applyHook;
             _hookDisposeActions.Add(() =>
             {
-                Settings.FixNullTreeView.SettingChanged -= applyHook;
+                Settings.FixNodeExpansionBug.SettingChanged -= applyHook;
                 hook.Dispose();
             });
         }

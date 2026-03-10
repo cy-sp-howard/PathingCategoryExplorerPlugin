@@ -14,14 +14,14 @@ namespace BhModule.PathingCategoryExplorerPlugin
         public SettingEntry<bool> AddDeselectRecursively { get; private set; }
         public SettingEntry<bool> AddSelectRecursively { get; private set; }
         public SettingEntry<bool> AddDeselectAllOthers { get; private set; }
-        public SettingEntry<bool> FixNullTreeView { get; private set; }
+        public SettingEntry<bool> FixNodeExpansionBug { get; private set; }
         public ModuleSettings(PathingCategoryExplorerPluginModule module, SettingCollection settings)
         {
             this._module = module;
             AddDeselectRecursively = settings.DefineSetting(nameof(this.AddDeselectRecursively), true, () => "Add Deselect Recursively", () => "");
             AddSelectRecursively = settings.DefineSetting(nameof(this.AddSelectRecursively), true, () => "Add Select Recursively", () => "");
             AddDeselectAllOthers = settings.DefineSetting(nameof(this.AddDeselectAllOthers), true, () => "Add Deselect All Othres", () => "");
-            FixNullTreeView = settings.DefineSetting(nameof(this.FixNullTreeView), true, () => "Fix Null TreeView", () => "Fix crash when checking a node after parent re-expansion.");
+            FixNodeExpansionBug = settings.DefineSetting(nameof(this.FixNodeExpansionBug), true, () => "Fix Node Expansion Bug", () => "Fix crash when checking a node after parent re-expansion.");
         }
         public void Unload()
         {
