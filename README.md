@@ -5,7 +5,7 @@ Must be enabled after the Pathing module is enabled.
 ## Features
 * Select node recursively.
 * Deselect node recursively.
-* Select the node and deselect all others.
+* Select the node path exclusively.
 * Fix node expansion bug.
 
 ## Usage

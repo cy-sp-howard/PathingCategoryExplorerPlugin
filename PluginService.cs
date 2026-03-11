@@ -20,11 +20,11 @@ namespace BhModule.PathingCategoryExplorerPlugin
         ModuleManager _pathingModuleManager;
         readonly List<Action> _hookDisposeActions = [];
         Action<Control, bool> _setPathingNodeChecked;
-        Func<Control, bool> _getPathingNodeChecked;
         Func<Control, bool> _getPathingNodeCheckable;
         Action<Control> _showAllCategories;
         Action<Control> _deselectAdjacentNodes;
         Action<Container> _disposeContainer;
+        bool _freezeConfirmation = false;
         bool DependenciesMet => PathingCategoryExplorerPluginModule.InstanceManager.DependenciesMet;
         public void Upadate()
         {
@@ -34,6 +34,7 @@ namespace BhModule.PathingCategoryExplorerPlugin
                 GetPathingModuleManager();
                 BuildActions();
                 HookCategoryContextMenu();
+                HookConfirmationWindow();
                 HookTreeNodeBaseDispose();
             }
         }
@@ -70,22 +71,21 @@ namespace BhModule.PathingCategoryExplorerPlugin
                 Expression.And(Expression.TypeIs(control, pathingNodeType), checkedDiff),
                 triggerCehcked
                 );
-            _setPathingNodeChecked = Expression.Lambda<Action<Control, bool>>(isPathingNodeThenSet, [control, isChecked]).Compile();
-
-            var isPathingNodeTypeThenGet0 = Expression.Condition(
-                Expression.TypeIs(control, pathingNodeType),
-                Expression.Property(ctrlAsPathingNode, "Checked"),
-                Expression.Constant(false)
-                );
-            _getPathingNodeChecked = Expression.Lambda<Func<Control, bool>>(isPathingNodeTypeThenGet0, [control]).Compile();
+            var setPathingNodeChecked = Expression.Lambda<Action<Control, bool>>(isPathingNodeThenSet, [control, isChecked]).Compile();
+            _setPathingNodeChecked = (ctrl, val) =>
+            {
+                if (val) _freezeConfirmation = true;
+                setPathingNodeChecked(ctrl, val);
+                if (_freezeConfirmation) _freezeConfirmation = false;
+            };
 
             var getCheckable = Expression.Property(ctrlAsPathingNode, "Checkable");
-            var isPathingNodeTypeThenGet1 = Expression.Condition(
+            var isPathingNodeTypeThenGet = Expression.Condition(
                 Expression.TypeIs(control, pathingNodeType),
                 getCheckable,
                 Expression.Constant(false)
                 );
-            _getPathingNodeCheckable = Expression.Lambda<Func<Control, bool>>(isPathingNodeTypeThenGet1, [control]).Compile();
+            _getPathingNodeCheckable = Expression.Lambda<Func<Control, bool>>(isPathingNodeTypeThenGet, [control]).Compile();
 
             var showAll = Expression.Call(
                 Expression.TypeAs(control, pathingCategoryNodeType),
@@ -130,6 +130,14 @@ namespace BhModule.PathingCategoryExplorerPlugin
             var hook = new Hook(BuildDeselectAdjacentNodesMethodInfo, BuildContextMenu);
             _hookDisposeActions.Add(() => hook.Dispose());
         }
+        void HookConfirmationWindow()
+        {
+            var pathingAssembly = Assembly.GetAssembly(_pathingModuleManager.ModuleInstance.GetType());
+            var pathingNodeType = pathingAssembly.GetType("BhModule.Community.Pathing.UI.Controls.TreeNodes.PathingCategoryNode");
+            var ShowConfirmationWindowMethodInfo = pathingNodeType.GetMethod("ShowConfirmationWindow", BindingFlags.NonPublic | BindingFlags.Instance);
+            var hook = new Hook(ShowConfirmationWindowMethodInfo, ShowConfirmationWindow);
+            _hookDisposeActions.Add(() => hook.Dispose());
+        }
         void HookTreeNodeBaseDispose()
         {
             var pathingAssembly = Assembly.GetAssembly(_pathingModuleManager.ModuleInstance.GetType());
@@ -153,6 +161,11 @@ namespace BhModule.PathingCategoryExplorerPlugin
             if (instance is Container container) _disposeContainer(container);
             dispose(instance);
         }
+        void ShowConfirmationWindow(Action<object> show, object instance)
+        {
+            if (_freezeConfirmation) return;
+            show(instance);
+        }
         void BuildContextMenu(Action<object> BuildDeselectAdjacentNodes, object instance)
         {
             if (instance is Container pathingNode)
@@ -166,9 +179,7 @@ namespace BhModule.PathingCategoryExplorerPlugin
                     };
                     stripItem.Click += (_, _) =>
                     {
-                        var restoreParentChecked = ActiveAllParentsAndSelf(pathingNode);
                         SelectRecursively(pathingNode, true);
-                        restoreParentChecked?.Invoke();
                     };
                 }
                 if (Settings.AddDeselectRecursively.Value)
@@ -184,7 +195,7 @@ namespace BhModule.PathingCategoryExplorerPlugin
                 }
                 if (Settings.AddDeselectAllOthers.Value)
                 {
-                    var stripItem = new ContextMenuStripItem("Deselect All Others")
+                    var stripItem = new ContextMenuStripItem("Select The Path Exclusively")
                     {
                         Parent = pathingNode.Menu
                     };
@@ -212,9 +223,8 @@ namespace BhModule.PathingCategoryExplorerPlugin
                 }
             }
         }
-        Action ActiveAllParentsAndSelf(Container pathingNode)
+        void ActiveAllParentsAndSelf(Container pathingNode)
         {
-            Action restoreActions = null;
             var pathingNodeType = pathingNode.GetType();
             List<Container> nodes = [pathingNode];
             while (nodes.Last().Parent.GetType() == pathingNodeType)
@@ -224,11 +234,8 @@ namespace BhModule.PathingCategoryExplorerPlugin
             nodes.Reverse();
             foreach (var node in nodes)
             {
-                var oldVal = _getPathingNodeChecked?.Invoke(node);
-                if (node != pathingNode && oldVal != true) restoreActions += () => { _setPathingNodeChecked?.Invoke(node, false); };
                 _setPathingNodeChecked?.Invoke(node, true);
             }
-            return restoreActions;
         }
         void DeselectAllOthers(Container pathingNode)
         {

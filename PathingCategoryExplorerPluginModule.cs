@@ -41,7 +41,7 @@ namespace BhModule.PathingCategoryExplorerPlugin
 
         protected override void Initialize()
         {
-            PluginService = new PluginService();
+            PluginService = new();
             InstanceManager = GameService.Module.Modules.FirstOrDefault(m => m.ModuleInstance == this);
         }
         protected override async Task LoadAsync()
@@ -49,12 +49,12 @@ namespace BhModule.PathingCategoryExplorerPlugin
         }
         protected override void Update(GameTime gameTime)
         {
-            this.PluginService.Upadate();
+            PluginService.Upadate();
         }
         protected override void Unload()
         {
-            this.Settings.Unload();
-            this.PluginService.Unload();
+            Settings.Unload();
+            PluginService.Unload();
         }
     }
 }

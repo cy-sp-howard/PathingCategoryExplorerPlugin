@@ -1,6 +1,6 @@
 {
-  "name": "PathingCategoryExplorerPlugin",
-  "version": "0.0.1",
+  "name": "Pathing Category Explorer Plugin",
+  "version": "0.0.2",
   "namespace": "Yeh.PathingCategoryExplorerPlugin",
   "package": "PathingCategoryExplorerPlugin.dll",
   "manifest_version": 1,
