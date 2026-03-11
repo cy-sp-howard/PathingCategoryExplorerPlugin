@@ -16,6 +16,7 @@ namespace BhModule.PathingCategoryExplorerPlugin
     public class PluginService
     {
         const string _pathingNamespace = "bh.community.pathing";
+        Logger Logger => PathingCategoryExplorerPluginModule.Logger;
         ModuleSettings Settings => PathingCategoryExplorerPluginModule.Instance.Settings;
         ModuleManager _pathingModuleManager;
         readonly List<Action> _hookDisposeActions = [];
@@ -25,17 +26,27 @@ namespace BhModule.PathingCategoryExplorerPlugin
         Action<Control> _deselectAdjacentNodes;
         Action<Container> _disposeContainer;
         bool _freezeConfirmation = false;
+        bool _error = false;
         bool DependenciesMet => PathingCategoryExplorerPluginModule.InstanceManager.DependenciesMet;
         public void Upadate()
         {
-            if (!DependenciesMet) return;
+            if (!DependenciesMet || _error) return;
             if (_pathingModuleManager is null)
             {
-                GetPathingModuleManager();
-                BuildActions();
-                HookCategoryContextMenu();
-                HookConfirmationWindow();
-                HookTreeNodeBaseDispose();
+                try
+                {
+                    GetPathingModuleManager();
+                    BuildActions();
+                    HookCategoryContextMenu();
+                    HookConfirmationWindow();
+                    HookTreeNodeBaseDispose();
+                }
+                catch (Exception ex)
+                {
+                    _error = true;
+                    OnPathingUnload(this, EventArgs.Empty);
+                    LogError(ex);
+                }
             }
         }
         public void Unload()
@@ -158,13 +169,17 @@ namespace BhModule.PathingCategoryExplorerPlugin
         }
         void DisposeTreeNodeBase(Action<object> dispose, object instance)
         {
-            if (instance is Container container) _disposeContainer(container);
+            if (instance is Container container) _disposeContainer?.Invoke(container);
             dispose(instance);
         }
         void ShowConfirmationWindow(Action<object> show, object instance)
         {
             if (_freezeConfirmation) return;
             show(instance);
+        }
+        void LogError(Exception ex)
+        {
+            Logger.Error(ex.Message + "\n" + ex.StackTrace);
         }
         void BuildContextMenu(Action<object> BuildDeselectAdjacentNodes, object instance)
         {
@@ -179,7 +194,8 @@ namespace BhModule.PathingCategoryExplorerPlugin
                     };
                     stripItem.Click += (_, _) =>
                     {
-                        SelectRecursively(pathingNode, true);
+                        try { SelectRecursively(pathingNode, true); }
+                        catch (Exception ex) { LogError(ex); }
                     };
                 }
                 if (Settings.AddDeselectRecursively.Value)
@@ -190,7 +206,8 @@ namespace BhModule.PathingCategoryExplorerPlugin
                     };
                     stripItem.Click += (_, _) =>
                     {
-                        SelectRecursively(pathingNode, false);
+                        try { SelectRecursively(pathingNode, false); }
+                        catch (Exception ex) { LogError(ex); }
                     };
                 }
                 if (Settings.AddDeselectAllOthers.Value)
@@ -201,8 +218,12 @@ namespace BhModule.PathingCategoryExplorerPlugin
                     };
                     stripItem.Click += (_, _) =>
                     {
-                        ActiveAllParentsAndSelf(pathingNode);
-                        DeselectAllOthers(pathingNode);
+                        try
+                        {
+                            ActiveAllParentsAndSelf(pathingNode);
+                            DeselectAllOthers(pathingNode);
+                        }
+                        catch (Exception ex) { LogError(ex); }
                     };
                 }
             }
@@ -239,7 +260,7 @@ namespace BhModule.PathingCategoryExplorerPlugin
         }
         void DeselectAllOthers(Container pathingNode)
         {
-            _deselectAdjacentNodes(pathingNode);
+            _deselectAdjacentNodes?.Invoke(pathingNode);
             if (pathingNode.Parent.GetType() != pathingNode.GetType()) return;
             DeselectAllOthers(pathingNode.Parent);
         }
