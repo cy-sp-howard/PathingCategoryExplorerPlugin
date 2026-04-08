@@ -30,7 +30,6 @@ namespace BhModule.PathingCategoryExplorerPlugin
     }
     public class PathingCategoryExplorerPluginSettingsView(SettingCollection settings) : View
     {
-        static public Action UpadateForgeIntervalTitle;
         static public Action DisposeRootFlowPanel;
         FlowPanel rootFlowPanel;
         readonly SettingCollection settings = settings;
